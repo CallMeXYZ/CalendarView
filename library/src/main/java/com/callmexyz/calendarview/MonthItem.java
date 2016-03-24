@@ -10,23 +10,31 @@ import java.util.Calendar;
  * Created by CallMeXYZ on 2016/3/22.
  */
 public class MonthItem extends ViewGroup {
-
-    private Calendar mFisrtDay;
+    // the first day of MontItem
+    private Calendar mFirstDay;
+    // the first day of month
+    private Calendar mMonthStartDay;
     private CalendarView mCalendarView;
 
     public MonthItem(Context context, Calendar monthFirstDay, CalendarView calendarView) {
         super(context);
         mCalendarView = calendarView;
-        mFisrtDay = monthFirstDay;
-        Calendar viewStart = Utils.getMonthViewStart(mFisrtDay, Calendar.SUNDAY);
-        for (int i = 0; i < Utils.MONTH_SIZE; i++) {
-            DayView dayView = new DayView(context, viewStart);
-            dayView.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    mCalendarView.handleDayClick((DayView) v);
-                }
-            });
+        mFirstDay = monthFirstDay;
+        mMonthStartDay = Utils.getMonthViewStart(mFirstDay, mCalendarView.getFirstDayOfWeek());
+        Calendar viewStart = (Calendar) mMonthStartDay.clone();
+        for (int i = 0; i < Utils.MONTH_VIEW_DAY_SIZE; i++) {
+            DayView dayView = new DayView(context, (Calendar) viewStart.clone(), mFirstDay, mCalendarView.getDayViewStyle());
+            if (Utils.ifSameMonth(viewStart, mFirstDay) || (mCalendarView.getDayViewStyle().isOutMonthVisible() && mCalendarView.getDayViewStyle().isOutMonthClickable()))
+                dayView.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        mCalendarView.handleDayClick((DayView) v);
+                    }
+                });
+            //here restore day click state
+            // TODO: 2016/3/24 in the future, dayview tag will be introduced. be careful of the tag state when restoring
+            if (null != mCalendarView.getSelectedCalendar() && Utils.ifSameDay(viewStart, mCalendarView.getSelectedCalendar()) && Utils.ifSameMonth(viewStart, mFirstDay) && null != mCalendarView.getDayClickListener())
+                mCalendarView.getDayClickListener().onDayClick(dayView, (Calendar) dayView.getDate().clone(), true);
             addView(dayView);
             viewStart.add(Calendar.DAY_OF_YEAR, 1);
         }
@@ -67,5 +75,19 @@ public class MonthItem extends ViewGroup {
             view.layout(left, top, left + height, top + width);
             left += width;
         }
+    }
+
+    public DayView getChildAt(Calendar c) {
+        long diff = Utils.getDayDifference(mFirstDay, c);
+        if (diff > Utils.MONTH_VIEW_DAY_SIZE) return null;
+        return (DayView) getChildAt((int) diff);
+    }
+
+    public Calendar getFirstDay() {
+        return mFirstDay;
+    }
+
+    public Calendar getMonthStartDay() {
+        return mMonthStartDay;
     }
 }

@@ -1,0 +1,27 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <declare-styleable name="xyz_calendarview">
+        <attr name="xyz_textColorInMonth" format="color"></attr>
+        <attr name="xyz_textColorOutMonth" format="color"></attr>
+        <attr name="xyz_dayTextSize" format="dimension"/>
+        <attr name="xyz_bgColorInMonth" format="color"></attr>
+        <attr name="xyz_bgColorOutMonth" format="color"></attr>
+        <attr name="xyz_outMonthClickable" format="boolean"></attr>
+        <attr name="xyz_outMonthVisible" format="boolean"></attr>
+        <attr name="xyz_firstDayOfWeek" format="integer">
+            <flag name="sunday" value="1"/>
+            <flag name="monday" value="2"/>
+            <flag name="tuesday" value="3"/>
+            <flag name="wednesday" value="4"/>
+            <flag name="thursday" value="5"/>
+            <flag name="friday" value="6"/>
+            <flag name="saturday" value="7"/>
+        </attr>
+        <attr name="xyz_weekNames" format="reference"/>
+        <attr name="xyz_weekNameHeight" format="dimension"/>
+        <attr name="xyz_weekTextSize" format="dimension"/>
+        <attr name="xyz_weekTextColor" format="color"/>
+        <attr name="xyz_weekBgColor" format="color"/>
+
+    </declare-styleable>
+</resources>

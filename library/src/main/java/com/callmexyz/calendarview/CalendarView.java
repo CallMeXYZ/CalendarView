@@ -1,12 +1,18 @@
 package com.callmexyz.calendarview;
 
 import android.content.Context;
+import android.content.res.TypedArray;
 import android.os.Build;
+import android.os.Bundle;
+import android.os.Parcelable;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+
+import com.callmexyz.calendarview.styles.DayViewStyle;
+import com.callmexyz.calendarview.styles.WeekViewStyle;
 
 import java.util.Calendar;
 
@@ -17,15 +23,25 @@ public class CalendarView extends ViewGroup {
     private final String TAG = CalendarView.class.getSimpleName();
     //in dp
     private final int default_week_title_height = 40;
+    private final int default_week_text_size = 16;
+    private final int default_day_text_size = 16;
     private MonthSelectedListener mMonthSelectedListener;
     private DayClickListener mDayClickListener;
     // date for the current showing month's start
     private Calendar mCurrentMonthStart;
     private int mCurrentPosition;
+
+    //styles
+    private DayViewStyle mDayViewStyle;
+    private WeekViewStyle mWeekViewStyle;
+    private int mFirstDayOfWeek;
+
+
     private WeekView mWeekView;
     private MonthViewPager mMonthViewPager;
     private MonthPagerAdapter mMonthPagerAdapter;
-    private DayView mSelectedDayView;
+    private Calendar mSelectedCalendar;
+
 
     public CalendarView(Context context) {
         this(context, null);
@@ -33,15 +49,47 @@ public class CalendarView extends ViewGroup {
 
     public CalendarView(Context context, AttributeSet attrs) {
         super(context, attrs);
-        init();
+        init(context, attrs);
     }
 
-    private void init() {
-        if (isInEditMode()) {
-            addView(new WeekView(getContext(), Calendar.SUNDAY, this));
-            addView(new MonthItem(getContext(), Calendar.getInstance(), this));
-            return;
+    private void init(Context context, AttributeSet attrs) {
+        initStyles(context, attrs);
+//        if (isInEditMode()) {
+//            addView(new WeekView(getContext(), Calendar.SUNDAY, this));
+//            addView(new MonthItem(getContext(),Utils.getNowMonthStart() , this));
+//            return;
+//        }
+        initViews();
+    }
+
+    // TODO: 2016/3/24
+    private void initStyles(Context context, AttributeSet attr) {
+        mDayViewStyle = new DayViewStyle();
+        TypedArray ta = getContext().obtainStyledAttributes(attr, R.styleable.xyz_calendarview, 0, 0);
+        try {
+            mFirstDayOfWeek = ta.getInt(R.styleable.xyz_calendarview_xyz_firstDayOfWeek, Calendar.SUNDAY);
+            //day view
+            mDayViewStyle.setTextColorInMonth(ta.getColor(R.styleable.xyz_calendarview_xyz_textColorInMonth, getResources().getColor(android.R.color.black)));
+            mDayViewStyle.setTextColorOutMonth(ta.getColor(R.styleable.xyz_calendarview_xyz_textColorOutMonth, getResources().getColor(android.R.color.darker_gray)));
+            mDayViewStyle.setBgColorInMonth(ta.getColor(R.styleable.xyz_calendarview_xyz_bgColorInMonth, getResources().getColor(android.R.color.transparent)));
+            mDayViewStyle.setBgColorOutMonth(ta.getColor(R.styleable.xyz_calendarview_xyz_bgColorOutMonth, getResources().getColor(android.R.color.transparent)));
+            mDayViewStyle.setOutMonthVisible(ta.getBoolean(R.styleable.xyz_calendarview_xyz_outMonthVisible, true));
+            mDayViewStyle.setOutMonthClickable(ta.getBoolean(R.styleable.xyz_calendarview_xyz_outMonthClickable, true));
+            mDayViewStyle.setTextSize(ta.getDimension(R.styleable.xyz_calendarview_xyz_dayTextSize, Utils.dpToPx(default_day_text_size, context)));
+            //week view
+            mWeekViewStyle = new WeekViewStyle();
+            mWeekViewStyle.setHeight((int) ta.getDimension(R.styleable.xyz_calendarview_xyz_weekNameHeight, Utils.dpToPx(default_week_title_height, context)));
+            mWeekViewStyle.setTextSize(ta.getDimension(R.styleable.xyz_calendarview_xyz_weekTextSize, Utils.dpToPx(default_week_text_size, context)));
+            mWeekViewStyle.setNames(ta.getTextArray(R.styleable.xyz_calendarview_xyz_weekNames));
+            mWeekViewStyle.setBgColor(ta.getColor(R.styleable.xyz_calendarview_xyz_weekBgColor, getResources().getColor(android.R.color.transparent)));
+            mWeekViewStyle.setTextColor(ta.getColor(R.styleable.xyz_calendarview_xyz_weekTextColor, getResources().getColor(android.R.color.black)));
+
+        } finally {
+            ta.recycle();
         }
+    }
+
+    private void initViews() {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.KITKAT) {
             //If we're on good Android versions, turn off clipping for cool effects
             setClipToPadding(false);
@@ -52,7 +100,7 @@ public class CalendarView extends ViewGroup {
             setClipToPadding(true);
         }
 
-        mWeekView = new WeekView(getContext(), Calendar.SUNDAY, this);
+        mWeekView = new WeekView(getContext(), this);
         mMonthViewPager = new MonthViewPager(getContext());
 
         mMonthPagerAdapter = new MonthPagerAdapter(this);
@@ -86,33 +134,62 @@ public class CalendarView extends ViewGroup {
         int widthSize = MeasureSpec.getSize(widthMeasureSpec);
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
-        int resizedWidth = widthSize - widthSize % Utils.WEEK_SIZE;
-        int defaultTitleHeight = Utils.dpToPx(default_week_title_height, getContext());
-        int minHeight = resizedWidth / 7 * 5 + defaultTitleHeight;
-        if (MeasureSpec.UNSPECIFIED == heightMode) heightSize = Math.max(heightSize, minHeight);
+
+        setPadding(getPaddingLeft() + widthSize % Utils.WEEK_SIZE / 2, getPaddingTop(), getPaddingRight() + widthSize % Utils.WEEK_SIZE - widthSize % Utils.WEEK_SIZE / 2, getPaddingBottom());
+
+        int resizedWidth = widthSize - getPaddingLeft() - getPaddingRight();
+        int resizedHeight = heightSize - getPaddingTop() - getPaddingBottom();
+        // TODO: 2016/3/24
+        int minHeight = resizedWidth / 7 * 5 + mWeekViewStyle.getHeight();
+        if (MeasureSpec.UNSPECIFIED == heightMode)
+            resizedHeight = Math.max(resizedHeight, minHeight);
         else if (MeasureSpec.AT_MOST == heightMode) {
-            heightSize = Math.min(heightSize, minHeight);
+            resizedHeight = Math.min(resizedHeight, minHeight);
         }
-        setPadding(widthSize % Utils.WEEK_SIZE / 2, 0, widthSize % Utils.WEEK_SIZE - widthSize % Utils.WEEK_SIZE / 2, 0);
-        setMeasuredDimension(resizedWidth, heightSize);
-        getChildAt(0).measure(MeasureSpec.makeMeasureSpec(resizedWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(defaultTitleHeight, MeasureSpec.EXACTLY));
-        getChildAt(1).measure(MeasureSpec.makeMeasureSpec(resizedWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(heightSize - defaultTitleHeight, MeasureSpec.EXACTLY));
+        setMeasuredDimension(resizedWidth + getPaddingLeft() + getPaddingRight(), resizedHeight + getPaddingTop() + getPaddingBottom());
+        getChildAt(0).measure(MeasureSpec.makeMeasureSpec(resizedWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(mWeekViewStyle.getHeight(), MeasureSpec.EXACTLY));
+        getChildAt(1).measure(MeasureSpec.makeMeasureSpec(resizedWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(resizedHeight - mWeekViewStyle.getHeight(), MeasureSpec.EXACTLY));
     }
 
     @Override
     protected void onLayout(boolean changed, int l, int t, int r, int b) {
         View child1 = getChildAt(0);
-        child1.layout(0, 0, child1.getMeasuredWidth(), child1.getMeasuredHeight());
+        int i = getPaddingLeft();
+        int j = child1.getMeasuredWidth();
+        child1.layout(getPaddingLeft(), getPaddingTop(), getPaddingLeft() + child1.getMeasuredWidth(), getPaddingTop() + child1.getMeasuredHeight());
         View child2 = getChildAt(1);
-        child2.layout(0, child1.getMeasuredHeight(), child2.getMeasuredWidth(), child1.getMeasuredHeight() + child2.getMeasuredHeight());
+        child2.layout(getPaddingLeft(), getPaddingTop() + child1.getMeasuredHeight(), getPaddingLeft() + child2.getMeasuredWidth(), getPaddingTop() + child1.getMeasuredHeight() + child2.getMeasuredHeight());
+    }
+
+    @Override
+    protected Parcelable onSaveInstanceState() {
+        super.onSaveInstanceState();
+        Bundle b = new Bundle();
+        b.putSerializable("weekStyle", mWeekViewStyle);
+        b.putSerializable("dayStyle", mDayViewStyle);
+        return b;
+    }
+
+    @Override
+    protected void onRestoreInstanceState(Parcelable b) {
+        super.onRestoreInstanceState(b);
+        if (b instanceof Bundle) {
+            mWeekViewStyle = (WeekViewStyle) ((Bundle) b).getSerializable("weekStyle");
+            mDayViewStyle = (DayViewStyle) ((Bundle) b).getSerializable("dayStyle");
+        }
     }
 
     protected void handleDayClick(DayView view) {
-        if (null != mDayClickListener&&null!=mSelectedDayView)
-            mDayClickListener.onDayUnClick(mSelectedDayView, view.getCalendar());
-        mSelectedDayView = view;
+        if (null != mDayClickListener && null != mSelectedCalendar) {
+            //get DayView from adapter, if it is not in one of the  cached MonthItems,then no
+            //need to handle UnClick
+            DayView v = mMonthPagerAdapter.getDayView(mSelectedCalendar);
+            if (null != v)
+                mDayClickListener.onDayUnClick(v, (Calendar) v.getDate().clone());
+        }
+        mSelectedCalendar = (Calendar) view.getDate().clone();
         if (null != mDayClickListener)
-            mDayClickListener.onDayClick(mSelectedDayView, view.getCalendar());
+            mDayClickListener.onDayClick(view, (Calendar) view.getDate().clone(), false);
     }
 
 
@@ -120,6 +197,9 @@ public class CalendarView extends ViewGroup {
         mMonthSelectedListener = listener;
     }
 
+    public DayClickListener getDayClickListener() {
+        return mDayClickListener;
+    }
 
     public void setDayClickListener(DayClickListener listener) {
         mDayClickListener = listener;
@@ -153,7 +233,27 @@ public class CalendarView extends ViewGroup {
         mMonthPagerAdapter.setRange(start, end);
         navToMonth(mCurrentMonthStart);
     }
-    /////////////////////////////////////////////////////////////////////////////
+
+    public DayViewStyle getDayViewStyle() {
+        return mDayViewStyle;
+    }
+
+    public void setDayViewStyle(DayViewStyle mDayViewStyle) {
+        this.mDayViewStyle = mDayViewStyle;
+    }
+
+    public WeekViewStyle getWeekViewStyle() {
+        return mWeekViewStyle;
+    }
+
+    public Calendar getSelectedCalendar() {
+        return mSelectedCalendar;
+    }
+
+    public int getFirstDayOfWeek() {
+        return mFirstDayOfWeek;
+    }
+/////////////////////////////////////////////////////////////////////////////
     //////                                                                   ////
     //////     interfaces                                                    ////
     //////                                                                   ////
@@ -167,13 +267,24 @@ public class CalendarView extends ViewGroup {
     }
 
     /**
-     * when a day is clicked, first the {@link #onDayUnClick(DayView view, Calendar c) } will be called
-     * to handle the former DayView's unselected state then the {@link #onDayClick(DayView view, Calendar c) }
-     * is called to handle the selected state
+     * when a day is clicked, first the {@link #onDayUnClick(DayView view, Calendar c) }
+     * will be called to handle the former DayView's unselected state then the
+     * {@link #onDayClick(DayView view, Calendar c, boolean ifRestoring) }
+     * is called to handle the selected state.<p/>
+     * note
      */
     public interface DayClickListener {
-        void onDayClick(DayView view, Calendar c);
+
+        /**
+         * this will be called when a DayView is called or a pre-clicked DayView is recreated
+         *
+         * @param view
+         * @param c
+         * @param ifRestoring
+         */
+        void onDayClick(DayView view, Calendar c, boolean ifRestoring);
 
         void onDayUnClick(DayView view, Calendar c);
     }
+
 }

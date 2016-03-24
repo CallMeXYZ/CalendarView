@@ -5,7 +5,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
-import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Calendar;
 
 /**
@@ -13,7 +13,7 @@ import java.util.Calendar;
  */
 public class MonthPagerAdapter extends PagerAdapter {
     private final String TAG = MonthPagerAdapter.class.getSimpleName();
-    private ArrayDeque<View> mViewList;
+    private ArrayList<MonthItem> mViewList;
     private Calendar mRangeStart;
     private Calendar mRangeEnd;
     private CalendarView mCalendarView;
@@ -22,7 +22,7 @@ public class MonthPagerAdapter extends PagerAdapter {
         mCalendarView = calendarView;
         mRangeStart = Utils.getRangeStart();
         mRangeEnd = Utils.getRangeEnd();
-        mViewList = new ArrayDeque<>();
+        mViewList = new ArrayList<>();
     }
 
     /**
@@ -61,7 +61,7 @@ public class MonthPagerAdapter extends PagerAdapter {
 
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
-        MonthItem monthItem = new MonthItem(container.getContext(), getItemCalendar(position),mCalendarView );
+        MonthItem monthItem = new MonthItem(container.getContext(), getItemCalendar(position), mCalendarView);
         container.addView(monthItem);
         mViewList.add(monthItem);
         return monthItem;
@@ -87,5 +87,18 @@ public class MonthPagerAdapter extends PagerAdapter {
             Log.w(TAG, "the given calendar is out of valid range");
         }
         return i < 0 ? 0 : (i > getCount() ? getCount() : i);
+    }
+
+    /**
+     * @param c
+     * @return null if the day view is out of range or not in the cached MonthItems
+     */
+    public DayView getDayView(Calendar c) {
+        for (int i = 0; i < mViewList.size(); i++) {
+            if (Utils.ifSameMonth(mViewList.get(i).getMonthStartDay(), c)) {
+                return mViewList.get(i).getChildAt(c);
+            }
+        }
+        return null;
     }
 }
