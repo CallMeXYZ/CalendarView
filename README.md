@@ -20,7 +20,13 @@ As the CalendarView projects in Github seems to be not so much **customizable**,
 
 
 #Issues [here](https://github.com/CallMeXYZ/CalendarView/blob/master/issues.md)
-## 2016.3.24
+
+# 2016.3.31
+- out-of-month day click event
+- month collapse to WeekView
+- when month view was added to a scrollable view,listen to the scroll state and can smooth collapse to weekview
+
+# 2016.3.24
 - ~~when click,size get smaller~~ *2016.3.31*
 
     ~~because `setBackGround(null)`,may be when set background drawable slide will cause resize~~
@@ -30,9 +36,6 @@ As the CalendarView projects in Github seems to be not so much **customizable**,
 
     the cache page is only 3 ,so the stored selected DayView in CalendarView is most likely not the same instance after slide back!!!
 
-## 2016.3.21
-- out-of-month day click event
-- month collapse to WeekView
-- when month view was added to a scrollable view,listen to the scroll state and can smooth collapse to weekview
+
 
 
