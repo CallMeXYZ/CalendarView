@@ -1,4 +1,5 @@
-# CalendarView
+#Screenshot
+<img src="./resources/screen-1.gif" width="30%" height="30%">
 As the CalendarView projects in Github seems to be not so much **customizable**,this CalendaView was born and here is what i achieve.
 - basically,`WeekView` (the title)  background color  customizable, `DayView` text   background color customizable
 - what exactly important is, DayView **click** click customizable by implenting [DayClickListener](https://github.com/CallMeXYZ/CalendarView/blob/master/library/src/main/java/com/callmexyz/calendarview/dayclicklistener/DayClickListener.java) and calling  `setDayClickListener`. 
