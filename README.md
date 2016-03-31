@@ -13,14 +13,13 @@ As the CalendarView projects in Github seems to be not so much **customizable**,
   
   Since that `DayView` is extended from `RelativeLayout`, u can add any view u like to `DayView`
   
-# logs [here](https://github.com/CallMeXYZ/CalendarView/blob/master/logs.md)
+# logs 
 ## 2015.3.31
 - rewrite the onDayUnClick mechanism 
 - use RelativeLayout instead of TextView as the container of DayView,so that u can add whatever effect u want to the DayView;
 
 
-#Issues [here](https://github.com/CallMeXYZ/CalendarView/blob/master/issues.md)
-
+#Issues 
 # 2016.3.31
 - out-of-month day click event
 - month collapse to WeekView
