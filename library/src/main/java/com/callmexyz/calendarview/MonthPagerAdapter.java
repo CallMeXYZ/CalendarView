@@ -95,7 +95,7 @@ public class MonthPagerAdapter extends PagerAdapter {
      */
     public DayView getDayView(Calendar c) {
         for (int i = 0; i < mViewList.size(); i++) {
-            if (Utils.ifSameMonth(mViewList.get(i).getMonthStartDay(), c)) {
+            if (Utils.ifSameMonth(mViewList.get(i).getFirstDay(), c)) {
                 return mViewList.get(i).getChildAt(c);
             }
         }

@@ -15,8 +15,8 @@ public class Utils {
 
     public static Calendar getMonthViewStart(Calendar c, int fisrtDayOfWeek) {
         Calendar r = (Calendar) c.clone();
-        r.set(Calendar.DAY_OF_MONTH, 1);
         r.set(Calendar.DAY_OF_WEEK, fisrtDayOfWeek);
+
         return r;
     }
 
@@ -80,11 +80,11 @@ public class Utils {
 
     public static long getDayDifference(Calendar small, Calendar big) {
         if (big.before(small)) return getDayDifference(big, small);
-        Calendar c1 = (Calendar) small.clone();
+      Calendar c1 = (Calendar) small.clone();
         c1.set(Calendar.HOUR_OF_DAY, 23);
         c1.set(Calendar.MINUTE, 59);
         c1.set(Calendar.SECOND, 59);
-        return Math.round((big.getTimeInMillis() - c1.getTimeInMillis()) / (24 * 3600 * 1000 + 0d));
+        return Math.round((big.getTimeInMillis() - c1.getTimeInMillis()) / (24 * 3600 * 1000 + 0d)+1);
     }
 
     public static int dpToPx(int dp, Context context) {

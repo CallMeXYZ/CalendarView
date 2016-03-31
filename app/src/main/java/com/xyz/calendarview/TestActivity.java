@@ -46,10 +46,11 @@ public class TestActivity extends Activity {
         }
 
         @Override
-        public void onDayClick(DayView view, Calendar c,boolean ifRestoring) {
-            super.onDayClick(view, c,ifRestoring);
+        public void onDayClick(DayView view, Calendar c, boolean ifRestoring) {
+            super.onDayClick(view, c, ifRestoring);
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            Toast.makeText(getApplicationContext(), sdf.format(new Date(calendarView.getSelectedCalendar().getTimeInMillis())), Toast.LENGTH_SHORT).show();
+            if (!ifRestoring)
+                Toast.makeText(getApplicationContext(), sdf.format(new Date(calendarView.getSelectedCalendar().getTimeInMillis())), Toast.LENGTH_SHORT).show();
         }
 
         @Override

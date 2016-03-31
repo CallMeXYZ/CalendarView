@@ -9,7 +9,7 @@
         android:id="@+id/time"
         android:layout_width="match_parent"
         android:layout_height="40dp"
-        android:text="1231233333333333333333333333333333333333333333333"
+        android:text="test"
         android:gravity="center"/>
 
     <com.callmexyz.calendarview.CalendarView

@@ -135,7 +135,9 @@ public class CalendarView extends ViewGroup {
         int heightSize = MeasureSpec.getSize(heightMeasureSpec);
         int heightMode = MeasureSpec.getMode(heightMeasureSpec);
 
-        setPadding(getPaddingLeft() + widthSize % Utils.WEEK_SIZE / 2, getPaddingTop(), getPaddingRight() + widthSize % Utils.WEEK_SIZE - widthSize % Utils.WEEK_SIZE / 2, getPaddingBottom());
+//        setPadding(getPaddingLeft() + widthSize % Utils.WEEK_SIZE / 2, getPaddingTop(), getPaddingRight() + widthSize % Utils.WEEK_SIZE - widthSize % Utils.WEEK_SIZE / 2, getPaddingBottom());
+
+        setPadding(getPaddingLeft() , getPaddingTop(), getPaddingRight(), getPaddingBottom());
 
         int resizedWidth = widthSize - getPaddingLeft() - getPaddingRight();
         int resizedHeight = heightSize - getPaddingTop() - getPaddingBottom();
