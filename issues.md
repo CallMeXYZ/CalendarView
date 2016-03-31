@@ -1,3 +1,9 @@
+
+# 2016.3.31
+- out-of-month day click event
+- month collapse to WeekView
+- when month view was added to a scrollable view,listen to the scroll state and can smooth collapse to weekview
+
 # 2016.3.24
 - ~~when click,size get smaller~~ *2016.3.31*
 
@@ -8,7 +14,3 @@
 
     the cache page is only 3 ,so the stored selected DayView in CalendarView is most likely not the same instance after slide back!!!
 
-# 2016.3.21
-- out-of-month day click event
-- month collapse to WeekView
-- when month view was added to a scrollable view,listen to the scroll state and can smooth collapse to weekview
