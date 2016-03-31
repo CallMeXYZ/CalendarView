@@ -11,6 +11,7 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.callmexyz.calendarview.dayclicklistener.DayClickListener;
 import com.callmexyz.calendarview.styles.DayViewStyle;
 import com.callmexyz.calendarview.styles.WeekViewStyle;
 
@@ -268,25 +269,6 @@ public class CalendarView extends ViewGroup {
         void onMonthSelected(Calendar c);
     }
 
-    /**
-     * when a day is clicked, first the {@link #onDayUnClick(DayView view, Calendar c) }
-     * will be called to handle the former DayView's unselected state then the
-     * {@link #onDayClick(DayView view, Calendar c, boolean ifRestoring) }
-     * is called to handle the selected state.<p/>
-     * note
-     */
-    public interface DayClickListener {
 
-        /**
-         * this will be called when a DayView is called or a pre-clicked DayView is recreated
-         *
-         * @param view
-         * @param c
-         * @param ifRestoring
-         */
-        void onDayClick(DayView view, Calendar c, boolean ifRestoring);
-
-        void onDayUnClick(DayView view, Calendar c);
-    }
 
 }

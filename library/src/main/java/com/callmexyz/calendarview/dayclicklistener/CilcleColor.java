@@ -8,7 +8,6 @@ import android.view.ViewGroup;
 import android.view.WindowManager;
 import android.widget.RelativeLayout;
 
-import com.callmexyz.calendarview.CalendarView;
 import com.callmexyz.calendarview.DayView;
 import com.callmexyz.calendarview.R;
 
@@ -17,7 +16,7 @@ import java.util.Calendar;
 /**
  * Created by CallMeXYZ on 2016/3/23.
  */
-public class CilcleColor implements CalendarView.DayClickListener {
+public class CilcleColor implements DayClickListener {
     @ColorInt
     int mCicleColor;
     @ColorInt

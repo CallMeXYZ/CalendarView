@@ -74,7 +74,7 @@ public class DayView extends RelativeLayout {
             mText.setId(TEXT_VIEW_ID);
             mText.setGravity(Gravity.CENTER);
             mText.setTextSize(TypedValue.COMPLEX_UNIT_PX, mTextSize);
-            mText.setText(mDate.get(Calendar.MONTH) + 1 + "." + mDate.get(Calendar.DAY_OF_MONTH) + "");
+            mText.setText(mDate.get(Calendar.DAY_OF_MONTH) + "");
             mText.setTextColor(mTextColor);
             RelativeLayout.LayoutParams lp2 = new LayoutParams(ViewGroup.LayoutParams.WRAP_CONTENT, WindowManager.LayoutParams.WRAP_CONTENT);
             lp2.addRule(RelativeLayout.CENTER_IN_PARENT);
