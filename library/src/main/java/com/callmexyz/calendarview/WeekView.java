@@ -19,17 +19,20 @@ public class WeekView extends ViewGroup {
     public WeekView(Context context, CalendarView calendarView) {
         super(context);
         mCalendarView = calendarView;
+        initViews();
+    }
 
-        int firstDayOfWeek = calendarView.getFirstDayOfWeek();
-        setBackgroundColor(calendarView.getWeekViewStyle().getBgColor());
+    private void initViews() {
+        int firstDayOfWeek = mCalendarView.getFirstDayOfWeek();
+        setBackgroundColor(mCalendarView.getWeekViewStyle().getBgColor());
         if (firstDayOfWeek > Calendar.SATURDAY || firstDayOfWeek < Calendar.SUNDAY)
             firstDayOfWeek = 0;
         mFirstDayOfWeek = firstDayOfWeek;
-        CharSequence[] names = calendarView.getWeekViewStyle().getNames();
+        CharSequence[] names = mCalendarView.getWeekViewStyle().getNames();
         int[] nameRess = new int[]{R.string.sunday_, R.string.monday_, R.string.tuesday_, R.string.wednesday_, R.string.thursday_, R.string.friday_, R.string.saturday_};
         for (int i = 0; i < 7; i++) {
             if (firstDayOfWeek > Calendar.SATURDAY) firstDayOfWeek = Calendar.SUNDAY;
-            if (null!=names&&names.length == nameRess.length)
+            if (null != names && names.length == nameRess.length)
                 addWeekName(names[firstDayOfWeek - 1]);
             else addWeekName(nameRess[firstDayOfWeek - 1]);
             firstDayOfWeek += 1;
@@ -41,13 +44,18 @@ public class WeekView extends ViewGroup {
         tv.setGravity(Gravity.CENTER);
         tv.setText(name);
         tv.setTextColor(mCalendarView.getWeekViewStyle().getTextColor());
-    tv.setTextSize(TypedValue.COMPLEX_UNIT_PX,mCalendarView.getWeekViewStyle().getTextSize());
+        tv.setTextSize(TypedValue.COMPLEX_UNIT_PX, mCalendarView.getWeekViewStyle().getTextSize());
         addView(tv);
 
     }
 
     private void addWeekName(@StringRes int res) {
         addWeekName(getContext().getString(res));
+    }
+
+    public void refreshUI() {
+        removeAllViews();
+        initViews();
     }
 
     @Override

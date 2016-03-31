@@ -21,14 +21,14 @@ public class MonthItem extends ViewGroup {
         super(context);
         mCalendarView = calendarView;
         mFirstDay = monthFirstDay;
+        initViews();
+    }
+
+    private void initViews() {
         mMonthStartDay = Utils.getMonthViewStart(mFirstDay, mCalendarView.getFirstDayOfWeek());
-        int x = mMonthStartDay.get(Calendar.DAY_OF_MONTH);
-        int m = mMonthStartDay.get(Calendar.MONTH);
-        int j = mFirstDay.get(Calendar.DAY_OF_MONTH);
-        int n = mFirstDay.get(Calendar.MONTH);
         Calendar viewStart = (Calendar) mMonthStartDay.clone();
         for (int i = 0; i < Utils.MONTH_VIEW_DAY_SIZE; i++) {
-            DayView dayView = new DayView(context, (Calendar) viewStart.clone(), mFirstDay, mCalendarView.getDayViewStyle());
+            DayView dayView = new DayView(getContext(), (Calendar) viewStart.clone(), mFirstDay, mCalendarView.getDayViewStyle());
             if (Utils.ifSameMonth(viewStart, mFirstDay))
                 dayView.setOnClickListener(new OnClickListener() {
                     @Override
@@ -48,7 +48,10 @@ public class MonthItem extends ViewGroup {
             viewStart.add(Calendar.DAY_OF_YEAR, 1);
         }
     }
-
+    public void refreshUI() {
+        removeAllViews();
+        initViews();
+    }
 
     @Override
     protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {

@@ -41,6 +41,17 @@ public class MonthPagerAdapter extends PagerAdapter {
         notifyDataSetChanged();
     }
 
+    public void refreshUI() {
+        for (MonthItem monthItem : mViewList) {
+            monthItem.refreshUI();
+        }
+    }
+
+    public boolean checkCalendar(Calendar c) {
+        return c.before(mRangeEnd) && c.after(mRangeStart);
+
+    }
+
     @Override
     public int getCount() {
         return getCount(mRangeStart, mRangeEnd);
@@ -100,5 +111,20 @@ public class MonthPagerAdapter extends PagerAdapter {
             }
         }
         return null;
+    }
+
+    public Calendar getRangeEnd() {
+        return mRangeEnd;
+    }
+
+    public Calendar getRangeStart() {
+        return mRangeStart;
+    }
+
+    /**
+     * @return cached MonthItems
+     */
+    public ArrayList<MonthItem> getViewList() {
+        return mViewList;
     }
 }

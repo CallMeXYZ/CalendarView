@@ -3,7 +3,7 @@ package com.callmexyz.calendarview;
 import android.content.Context;
 import android.content.res.TypedArray;
 import android.os.Build;
-import android.os.Bundle;
+import android.os.Parcel;
 import android.os.Parcelable;
 import android.support.v4.view.ViewPager;
 import android.util.AttributeSet;
@@ -105,8 +105,11 @@ public class CalendarView extends ViewGroup {
         mMonthViewPager = new MonthViewPager(getContext());
 
         mMonthPagerAdapter = new MonthPagerAdapter(this);
+
         mMonthViewPager.setAdapter(mMonthPagerAdapter);
-        mMonthViewPager.setCurrentItem(mMonthPagerAdapter.getPosition(Calendar.getInstance()));
+        mCurrentPosition = mMonthPagerAdapter.getPosition(Calendar.getInstance());
+        mMonthViewPager.setCurrentItem(mCurrentPosition);
+
         mMonthViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -138,7 +141,7 @@ public class CalendarView extends ViewGroup {
 
 //        setPadding(getPaddingLeft() + widthSize % Utils.WEEK_SIZE / 2, getPaddingTop(), getPaddingRight() + widthSize % Utils.WEEK_SIZE - widthSize % Utils.WEEK_SIZE / 2, getPaddingBottom());
 
-        setPadding(getPaddingLeft() , getPaddingTop(), getPaddingRight(), getPaddingBottom());
+        setPadding(getPaddingLeft(), getPaddingTop(), getPaddingRight(), getPaddingBottom());
 
         int resizedWidth = widthSize - getPaddingLeft() - getPaddingRight();
         int resizedHeight = heightSize - getPaddingTop() - getPaddingBottom();
@@ -166,23 +169,44 @@ public class CalendarView extends ViewGroup {
 
     @Override
     protected Parcelable onSaveInstanceState() {
-        super.onSaveInstanceState();
-        Bundle b = new Bundle();
-        b.putSerializable("weekStyle", mWeekViewStyle);
-        b.putSerializable("dayStyle", mDayViewStyle);
-        return b;
+        SavedState s = new SavedState(super.onSaveInstanceState());
+        s.weekViewStyle = mWeekViewStyle;
+        s.dayViewStyle = mDayViewStyle;
+        s.firstDayOfWeek = mFirstDayOfWeek;
+        s.currentPosition = mCurrentPosition;
+        s.rangeStart = mMonthPagerAdapter.getRangeStart();
+        s.rangeEnd = mMonthPagerAdapter.getRangeEnd();
+        s.selectCalendar = mSelectedCalendar;
+        return s;
     }
 
     @Override
-    protected void onRestoreInstanceState(Parcelable b) {
-        super.onRestoreInstanceState(b);
-        if (b instanceof Bundle) {
-            mWeekViewStyle = (WeekViewStyle) ((Bundle) b).getSerializable("weekStyle");
-            mDayViewStyle = (DayViewStyle) ((Bundle) b).getSerializable("dayStyle");
-        }
+    protected void onRestoreInstanceState(Parcelable p) {
+        SavedState s = (SavedState) p;
+        super.onRestoreInstanceState(s.getSuperState());
+        mWeekViewStyle = s.weekViewStyle;
+        mDayViewStyle = s.dayViewStyle;
+        mFirstDayOfWeek = s.firstDayOfWeek;
+        //'d better call this at first, this will remove the existing DayViews and WeekView items
+        refreshUI();
+
+        setRange(s.rangeStart, s.rangeEnd);
+        navToMonth(s.currentPosition);
+        restoreSelect(s.selectCalendar);
+    }
+
+    private void restoreSelect(Calendar c) {
+        mSelectedCalendar = c;
+        DayView selectView = mMonthPagerAdapter.getDayView(c);
+        if (null != selectView && null != mDayClickListener)
+            mDayClickListener.onDayClick(selectView, (Calendar) selectView.getDate().clone(), true);
     }
 
     protected void handleDayClick(DayView view) {
+        if (null == view) {
+            Log.w(TAG, "u are handleDayClick of a NULL DayView");
+            return;
+        }
         if (null != mDayClickListener && null != mSelectedCalendar) {
             //get DayView from adapter, if it is not in one of the  cached MonthItems,then no
             //need to handle UnClick
@@ -228,13 +252,49 @@ public class CalendarView extends ViewGroup {
             position = mMonthPagerAdapter.getCount();
             Log.w(TAG, "the given position is latter than the range start");
         }
-        mMonthViewPager.setCurrentItem(position);
+        if (mCurrentPosition != position)
+            mMonthViewPager.setCurrentItem(position);
 
+    }
+
+    /**
+     * may not work when the CalendarView is creating  or initiating (such as u just get it from the layout)
+     * On this condition,{@link #selectDayAtInit(Calendar)} is suggested;
+     * or u can still use this method after waiting several millis
+     *
+     * @param c
+     */
+    public void selectDay(Calendar c) {
+        if (!mMonthPagerAdapter.checkCalendar(c)) {
+            Log.w(TAG, "the given Calendar is out of range");
+            return;
+        }
+
+        navToMonth(c);
+        handleDayClick(mMonthPagerAdapter.getDayView(c));
+    }
+
+    /**
+     * this method only works for select Day when CalendarView is just initiating otherwise u should use {@link #selectDay(Calendar)}
+     *
+     * @param
+     */
+    public void selectDayAtInit(Calendar c) {
+        mSelectedCalendar = c;
+        navToMonth(mMonthPagerAdapter.getPosition(c));
+    }
+
+    /**
+     * refresh all the current view
+     */
+    public void refreshUI() {
+        mMonthPagerAdapter.refreshUI();
+        mWeekView.refreshUI();
     }
 
     public void setRange(Calendar start, Calendar end) {
         mMonthPagerAdapter.setRange(start, end);
-        navToMonth(mCurrentMonthStart);
+        if (null != mCurrentMonthStart) navToMonth(mCurrentMonthStart);
     }
 
     public DayViewStyle getDayViewStyle() {
@@ -243,10 +303,16 @@ public class CalendarView extends ViewGroup {
 
     public void setDayViewStyle(DayViewStyle mDayViewStyle) {
         this.mDayViewStyle = mDayViewStyle;
+        refreshUI();
     }
 
     public WeekViewStyle getWeekViewStyle() {
         return mWeekViewStyle;
+    }
+
+    public void setWeekViewStyle(WeekViewStyle mWeekViewStyle) {
+        this.mWeekViewStyle = mWeekViewStyle;
+        refreshUI();
     }
 
     public Calendar getSelectedCalendar() {
@@ -256,11 +322,18 @@ public class CalendarView extends ViewGroup {
     public int getFirstDayOfWeek() {
         return mFirstDayOfWeek;
     }
-/////////////////////////////////////////////////////////////////////////////
-    //////                                                                   ////
-    //////     interfaces                                                    ////
-    //////                                                                   ////
-    /////////////////////////////////////////////////////////////////////////////
+
+    /**
+     * @param firstDayOfWeek same as setFirstDayOfWeek of Calendar
+     */
+    public void setFirstDayOfWeek(int firstDayOfWeek) {
+        mFirstDayOfWeek = firstDayOfWeek;
+        refreshUI();
+    }
+
+    public MonthPagerAdapter getMonthPagerAdapter() {
+        return mMonthPagerAdapter;
+    }
 
     /**
      * interface for month showing on the screen,return the calendar of month start
@@ -269,6 +342,59 @@ public class CalendarView extends ViewGroup {
         void onMonthSelected(Calendar c);
     }
 
+    public static class SavedState extends BaseSavedState {
+
+
+        public static final Parcelable.Creator<SavedState> CREATOR = new Parcelable.Creator<SavedState>() {
+            @Override
+            public SavedState createFromParcel(Parcel source) {
+                return new SavedState(source);
+            }
+
+            @Override
+            public SavedState[] newArray(int size) {
+                return new SavedState[size];
+            }
+        };
+        WeekViewStyle weekViewStyle;
+        DayViewStyle dayViewStyle;
+        int firstDayOfWeek;
+        int currentPosition;
+        Calendar rangeStart;
+        Calendar rangeEnd;
+        Calendar selectCalendar;
+
+        public SavedState(Parcelable p) {
+            super(p);
+        }
+
+        protected SavedState(Parcel in) {
+            super(in);
+            this.weekViewStyle = (WeekViewStyle) in.readSerializable();
+            this.dayViewStyle = (DayViewStyle) in.readSerializable();
+            this.firstDayOfWeek = in.readInt();
+            this.currentPosition = in.readInt();
+            this.rangeStart = (Calendar) in.readSerializable();
+            this.rangeEnd = (Calendar) in.readSerializable();
+            this.selectCalendar = (Calendar) in.readSerializable();
+        }
+
+        @Override
+        public int describeContents() {
+            return 0;
+        }
+
+        @Override
+        public void writeToParcel(Parcel dest, int flags) {
+            dest.writeSerializable(this.weekViewStyle);
+            dest.writeSerializable(this.dayViewStyle);
+            dest.writeInt(this.firstDayOfWeek);
+            dest.writeInt(this.currentPosition);
+            dest.writeSerializable(this.rangeStart);
+            dest.writeSerializable(this.rangeEnd);
+            dest.writeSerializable(this.selectCalendar);
+        }
+    }
 
 
 }
