@@ -6,6 +6,7 @@ import java.io.Serializable;
 
 /**
  * Created by CallMeXYZ on 2016/3/24.
+ * Note:when in week view mode, there is no so called in month or out month
  */
 public class DayViewStyle implements Serializable{
     //inMonth means the day view is in the showing month  while outMonth the opposite

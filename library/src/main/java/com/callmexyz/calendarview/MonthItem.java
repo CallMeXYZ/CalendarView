@@ -4,6 +4,8 @@ import android.content.Context;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.callmexyz.calendarview.styles.MonthViewStyle;
+
 import java.util.Calendar;
 
 /**
@@ -11,7 +13,10 @@ import java.util.Calendar;
  */
 public class MonthItem extends ViewGroup {
 
-    // the first day of month
+// TODO: 2016/4/1  reset first day mechanism
+    /**
+     * the first day the month in month view or the first day add several weeks in week view
+     */
     private Calendar mFirstDay;
     // the first day of MontItem
     private Calendar mMonthStartDay;
@@ -26,28 +31,42 @@ public class MonthItem extends ViewGroup {
 
     private void initViews() {
         mMonthStartDay = Utils.getMonthViewStart(mFirstDay, mCalendarView.getFirstDayOfWeek());
-        Calendar viewStart = (Calendar) mMonthStartDay.clone();
-        for (int i = 0; i < Utils.MONTH_VIEW_DAY_SIZE; i++) {
-            DayView dayView = new DayView(getContext(), (Calendar) viewStart.clone(), mFirstDay, mCalendarView.getDayViewStyle());
-            if (Utils.ifSameMonth(viewStart, mFirstDay))
-                dayView.setOnClickListener(new OnClickListener() {
-                    @Override
-                    public void onClick(View v) {
-                        mCalendarView.handleDayClick((DayView) v);
-                    }
-                });
-                // TODO: 2016/3/31  outMonthDay Click event
-            else if ((mCalendarView.getDayViewStyle().isOutMonthVisible() && mCalendarView.getDayViewStyle().isOutMonthClickable())) {
+        final Calendar viewStart = (Calendar) mMonthStartDay.clone();
+        int size = 0;
+        switch (mCalendarView.getMonthViewStyle().getMonthType()) {
+            case WEEK_VIEW:
+                size = Utils.WEEK_SIZE;
+                break;
+            default:
+                size = Utils.MONTH_VIEW_DAY_SIZE;
+                break;
+        }
+        for (int i = 0; i < size; i++) {
+            final DayView dayView = new DayView(getContext(), (Calendar) viewStart.clone(), mFirstDay, mCalendarView.getDayViewStyle(), mCalendarView.getMonthViewStyle());
 
-            }
+            dayView.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    //when in week view mode, there is no so called in month or out month
+                    if (MonthViewStyle.MonthType.WEEK_VIEW == mCalendarView.getMonthViewStyle().getMonthType() || Utils.ifSameMonth(viewStart, mFirstDay))
+                        mCalendarView.handleDayClick((DayView) v);
+                    else if ((mCalendarView.getDayViewStyle().isOutMonthVisible() && mCalendarView.getDayViewStyle().isOutMonthClickable())) {
+                        mCalendarView.selectDay(dayView.getDate());
+                    }
+                }
+
+
+            });
             //here restore day click state
             // TODO: 2016/3/24 in the future, dayview tag will be introduced. be careful of the tag state when restoring
-            if (null != mCalendarView.getSelectedCalendar() && Utils.ifSameDay(viewStart, mCalendarView.getSelectedCalendar()) && Utils.ifSameMonth(viewStart, mFirstDay) && null != mCalendarView.getDayClickListener())
+            if (null != mCalendarView.getSelectedCalendar() && Utils.ifSameDay(viewStart, mCalendarView.getSelectedCalendar()) && (MonthViewStyle.MonthType.WEEK_VIEW == mCalendarView.getMonthViewStyle().getMonthType() || Utils.ifSameMonth(viewStart, mFirstDay)) && null != mCalendarView.getDayClickListener())
                 mCalendarView.getDayClickListener().onDayClick(dayView, (Calendar) dayView.getDate().clone(), true);
             addView(dayView);
             viewStart.add(Calendar.DAY_OF_YEAR, 1);
         }
+
     }
+
     public void refreshUI() {
         removeAllViews();
         initViews();
@@ -90,15 +109,11 @@ public class MonthItem extends ViewGroup {
     }
 
     public DayView getChildAt(Calendar c) {
-        int x = mMonthStartDay.get(Calendar.DAY_OF_MONTH);
-        int m = mMonthStartDay.get(Calendar.MONTH);
-        int j = mFirstDay.get(Calendar.DAY_OF_MONTH);
-        int n = mFirstDay.get(Calendar.MONTH);
-        int s = c.get(Calendar.DAY_OF_MONTH);
-        int sss = c.get(Calendar.MONTH);
         long diff = Utils.getDayDifference(mMonthStartDay, c);
-        if (diff > Utils.MONTH_VIEW_DAY_SIZE) return null;
-        return (DayView) getChildAt((int) diff - 1);
+        if ((MonthViewStyle.MonthType.MONTH_VIEW == mCalendarView.getMonthViewStyle().getMonthType() && diff > Utils.MONTH_VIEW_DAY_SIZE)
+                || (MonthViewStyle.MonthType.WEEK_VIEW == mCalendarView.getMonthViewStyle().getMonthType() && diff > Utils.WEEK_SIZE))
+            return null;
+        return (DayView) getChildAt((int) diff);
     }
 
     public Calendar getFirstDay() {

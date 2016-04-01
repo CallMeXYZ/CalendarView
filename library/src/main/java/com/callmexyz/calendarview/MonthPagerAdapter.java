@@ -5,6 +5,8 @@ import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.callmexyz.calendarview.styles.MonthViewStyle;
+
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -37,14 +39,14 @@ public class MonthPagerAdapter extends PagerAdapter {
             Log.w(TAG, "the range end is former than start u kidding me ");
         }
         if (null != start) mRangeStart = Utils.getRange(start.getTimeInMillis());
+        // TODO: 2016/4/1
         if (null != end) mRangeEnd = Utils.getRange(end.getTimeInMillis());
         notifyDataSetChanged();
     }
 
     public void refreshUI() {
-        for (MonthItem monthItem : mViewList) {
-            monthItem.refreshUI();
-        }
+        mViewList.clear();
+       notifyDataSetChanged();
     }
 
     public boolean checkCalendar(Calendar c) {
@@ -57,12 +59,15 @@ public class MonthPagerAdapter extends PagerAdapter {
         return getCount(mRangeStart, mRangeEnd);
     }
 
+    // TODO: 2016/4/1 quiete complicated here to get the exact range of differen MonthStyle especially for WeekView 
     private int getCount(Calendar start, Calendar end) {
         if (end.before(start)) {
             Log.w(TAG, "range end is before start");
             return 0;
         }
-        return Utils.getMonthDiff(start, end) + 1;
+        if (MonthViewStyle.MonthType.MONTH_VIEW == mCalendarView.getMonthViewStyle().getMonthType())
+            return Utils.getMonthDiff(start, end) + 1;
+        return Utils.getWeekDiff(start, end,mCalendarView.getFirstDayOfWeek()) + 1;
     }
 
     @Override
@@ -88,12 +93,17 @@ public class MonthPagerAdapter extends PagerAdapter {
 
     public Calendar getItemCalendar(int position) {
         Calendar c = (Calendar) mRangeStart.clone();
-        c.add(Calendar.MONTH, position);
+        if (MonthViewStyle.MonthType.MONTH_VIEW == mCalendarView.getMonthViewStyle().getMonthType())
+            c.add(Calendar.MONTH, position);
+        else c.add(Calendar.WEEK_OF_YEAR, position);
         return c;
     }
 
     public int getPosition(Calendar c) {
-        int i = Utils.getMonthDiff(mRangeStart, c);
+        int i = 0;
+        if (MonthViewStyle.MonthType.MONTH_VIEW == mCalendarView.getMonthViewStyle().getMonthType())
+            i = Utils.getMonthDiff(mRangeStart, c);
+        else i = Utils.getWeekDiff(mRangeStart, c,mCalendarView.getFirstDayOfWeek());
         if (i < 0 || i > getCount() - 1) {
             Log.w(TAG, "the given calendar is out of valid range");
         }
@@ -106,7 +116,10 @@ public class MonthPagerAdapter extends PagerAdapter {
      */
     public DayView getDayView(Calendar c) {
         for (int i = 0; i < mViewList.size(); i++) {
-            if (Utils.ifSameMonth(mViewList.get(i).getFirstDay(), c)) {
+            if ((MonthViewStyle.MonthType.MONTH_VIEW == mCalendarView.getMonthViewStyle().getMonthType()
+                    && Utils.ifSameMonth(mViewList.get(i).getFirstDay(), c))
+                    || (MonthViewStyle.MonthType.WEEK_VIEW == mCalendarView.getMonthViewStyle().getMonthType()
+                    && Utils.ifSameWeek(mViewList.get(i).getFirstDay(), c, mCalendarView.getFirstDayOfWeek()))) {
                 return mViewList.get(i).getChildAt(c);
             }
         }

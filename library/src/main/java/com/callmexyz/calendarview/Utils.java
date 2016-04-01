@@ -10,7 +10,7 @@ import java.util.Calendar;
  */
 public class Utils {
     public static final int WEEK_SIZE = 7;
-    public static final int MONTH_VIEW_WEEK_NUM = 5;
+    public static final int MONTH_VIEW_WEEK_NUM = 6;
     public static final int MONTH_VIEW_DAY_SIZE = WEEK_SIZE * MONTH_VIEW_WEEK_NUM;
 
     public static Calendar getMonthViewStart(Calendar c, int fisrtDayOfWeek) {
@@ -73,18 +73,41 @@ public class Utils {
 
     }
 
+    public static boolean ifSameWeek(Calendar cc1, Calendar cc2, int firstDayOfWeek) {
+        if (null == cc1 || null == cc2) return false;
+        Calendar c1 = (Calendar) cc1.clone();
+        Calendar c2 = (Calendar) cc2.clone();
+        c1.setFirstDayOfWeek(firstDayOfWeek);
+        c2.setFirstDayOfWeek(firstDayOfWeek);
+        return c1.get(Calendar.YEAR) == c2.get(Calendar.YEAR) && c1.get(Calendar.WEEK_OF_YEAR) == c2.get(Calendar.WEEK_OF_YEAR);
+    }
+
     public static int getMonthDiff(Calendar small, Calendar big) {
         if (big.before(small)) return 0;
         return (big.get(Calendar.YEAR) - small.get(Calendar.YEAR)) * 12 + big.get(Calendar.MONTH) - small.get(Calendar.MONTH);
     }
 
+    public static int getWeekDiff(Calendar s, Calendar b, int firstDayOfWeek) {
+        if (ifSameWeek(s, b, firstDayOfWeek)) return 0;
+        if (b.before(s)) return getWeekDiff(s, b, firstDayOfWeek);
+        Calendar small = (Calendar) s.clone();
+        Calendar big = (Calendar) b.clone();
+        s.setFirstDayOfWeek(firstDayOfWeek);
+        b.setFirstDayOfWeek(firstDayOfWeek);
+        int weekEnd = (s.get(Calendar.DAY_OF_WEEK)-1)%7;
+        if(0==weekEnd) weekEnd=Calendar.SATURDAY;
+        s.set(Calendar.DAY_OF_WEEK,weekEnd);
+        return (int) (getDayDifference(small, big) / 7)+1;
+    }
+
     public static long getDayDifference(Calendar small, Calendar big) {
+        if (ifSameDay(small, big)) return 0;
         if (big.before(small)) return getDayDifference(big, small);
         Calendar c1 = (Calendar) small.clone();
         c1.set(Calendar.HOUR_OF_DAY, 23);
         c1.set(Calendar.MINUTE, 59);
         c1.set(Calendar.SECOND, 59);
-        return Math.round((big.getTimeInMillis() - c1.getTimeInMillis()) / (24 * 3600 * 1000 + 0d) + 1);
+        return (big.getTimeInMillis() - c1.getTimeInMillis()) / (24 * 3600 * 1000) + 1;
     }
 
     public static int dpToPx(int dp, Context context) {

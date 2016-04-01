@@ -10,9 +10,12 @@ import android.util.AttributeSet;
 import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.Animation;
+import android.view.animation.Transformation;
 
 import com.callmexyz.calendarview.dayclicklistener.DayClickListener;
 import com.callmexyz.calendarview.styles.DayViewStyle;
+import com.callmexyz.calendarview.styles.MonthViewStyle;
 import com.callmexyz.calendarview.styles.WeekViewStyle;
 
 import java.util.Calendar;
@@ -26,23 +29,21 @@ public class CalendarView extends ViewGroup {
     private final int default_week_title_height = 40;
     private final int default_week_text_size = 16;
     private final int default_day_text_size = 16;
+    boolean collapsing = false;
     private MonthSelectedListener mMonthSelectedListener;
     private DayClickListener mDayClickListener;
     // date for the current showing month's start
     private Calendar mCurrentMonthStart;
     private int mCurrentPosition;
-
     //styles
     private DayViewStyle mDayViewStyle;
     private WeekViewStyle mWeekViewStyle;
+    private MonthViewStyle mMonthViewStyle;
     private int mFirstDayOfWeek;
-
-
     private WeekView mWeekView;
     private MonthViewPager mMonthViewPager;
     private MonthPagerAdapter mMonthPagerAdapter;
     private Calendar mSelectedCalendar;
-
 
     public CalendarView(Context context) {
         this(context, null);
@@ -84,6 +85,11 @@ public class CalendarView extends ViewGroup {
             mWeekViewStyle.setNames(ta.getTextArray(R.styleable.xyz_calendarview_xyz_weekNames));
             mWeekViewStyle.setBgColor(ta.getColor(R.styleable.xyz_calendarview_xyz_weekBgColor, getResources().getColor(android.R.color.transparent)));
             mWeekViewStyle.setTextColor(ta.getColor(R.styleable.xyz_calendarview_xyz_weekTextColor, getResources().getColor(android.R.color.black)));
+            //Month view
+            int montMode = ta.getInt(R.styleable.xyz_calendarview_xyz_monthViewMode, 1);
+            mMonthViewStyle = new MonthViewStyle();
+            if (montMode == 1) mMonthViewStyle.setMonthType(MonthViewStyle.MonthType.MONTH_VIEW);
+            else mMonthViewStyle.setMonthType(MonthViewStyle.MonthType.WEEK_VIEW);
 
         } finally {
             ta.recycle();
@@ -146,15 +152,24 @@ public class CalendarView extends ViewGroup {
         int resizedWidth = widthSize - getPaddingLeft() - getPaddingRight();
         int resizedHeight = heightSize - getPaddingTop() - getPaddingBottom();
         // TODO: 2016/3/24
-        int minHeight = resizedWidth / 7 * 5 + mWeekViewStyle.getHeight();
+//        int minHeight = resizedWidth / Utils.WEEK_SIZE * Utils.MONTH_VIEW_WEEK_NUM + mWeekViewStyle.getHeight();
+        int minHeight = 0;
+        if (MonthViewStyle.MonthType.MONTH_VIEW == mMonthViewStyle.getMonthType())
+            minHeight = resizedWidth / Utils.WEEK_SIZE * Utils.MONTH_VIEW_WEEK_NUM + mWeekViewStyle.getHeight();
+        else minHeight = resizedWidth / 7 + mWeekViewStyle.getHeight();
+
         if (MeasureSpec.UNSPECIFIED == heightMode)
             resizedHeight = Math.max(resizedHeight, minHeight);
         else if (MeasureSpec.AT_MOST == heightMode) {
             resizedHeight = Math.min(resizedHeight, minHeight);
         }
-        setMeasuredDimension(resizedWidth + getPaddingLeft() + getPaddingRight(), resizedHeight + getPaddingTop() + getPaddingBottom());
+        if (collapsing)
+            setMeasuredDimension(widthSize + getPaddingLeft() + getPaddingRight(), heightSize + getPaddingTop() + getPaddingBottom());
+        else
+            setMeasuredDimension(resizedWidth + getPaddingLeft() + getPaddingRight(), resizedHeight + getPaddingTop() + getPaddingBottom());
         getChildAt(0).measure(MeasureSpec.makeMeasureSpec(resizedWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(mWeekViewStyle.getHeight(), MeasureSpec.EXACTLY));
         getChildAt(1).measure(MeasureSpec.makeMeasureSpec(resizedWidth, MeasureSpec.EXACTLY), MeasureSpec.makeMeasureSpec(resizedHeight - mWeekViewStyle.getHeight(), MeasureSpec.EXACTLY));
+
     }
 
     @Override
@@ -172,6 +187,7 @@ public class CalendarView extends ViewGroup {
         SavedState s = new SavedState(super.onSaveInstanceState());
         s.weekViewStyle = mWeekViewStyle;
         s.dayViewStyle = mDayViewStyle;
+        s.monthViewStyle = mMonthViewStyle;
         s.firstDayOfWeek = mFirstDayOfWeek;
         s.currentPosition = mCurrentPosition;
         s.rangeStart = mMonthPagerAdapter.getRangeStart();
@@ -186,12 +202,14 @@ public class CalendarView extends ViewGroup {
         super.onRestoreInstanceState(s.getSuperState());
         mWeekViewStyle = s.weekViewStyle;
         mDayViewStyle = s.dayViewStyle;
+        mMonthViewStyle = s.monthViewStyle;
         mFirstDayOfWeek = s.firstDayOfWeek;
         //'d better call this at first, this will remove the existing DayViews and WeekView items
+        // TODO: 2016/4/1  pagerAdapter need to notify??
         refreshUI();
 
         setRange(s.rangeStart, s.rangeEnd);
-        navToMonth(s.currentPosition);
+        navToPage(s.currentPosition);
         restoreSelect(s.selectCalendar);
     }
 
@@ -219,7 +237,6 @@ public class CalendarView extends ViewGroup {
             mDayClickListener.onDayClick(view, (Calendar) view.getDate().clone(), false);
     }
 
-
     public void setMonthSelectedListener(MonthSelectedListener listener) {
         mMonthSelectedListener = listener;
     }
@@ -232,19 +249,19 @@ public class CalendarView extends ViewGroup {
         mDayClickListener = listener;
     }
 
-    public void navToMonth(Calendar c) {
-        navToMonth(mMonthPagerAdapter.getPosition(c));
+    public void navToPage(Calendar c) {
+        navToPage(mMonthPagerAdapter.getPosition(c));
     }
 
     public void navToNext() {
-        navToMonth(mCurrentPosition + 1);
+        navToPage(mCurrentPosition + 1);
     }
 
     public void navToFormer() {
-        navToMonth(mCurrentPosition - 1);
+        navToPage(mCurrentPosition - 1);
     }
 
-    private void navToMonth(int position) {
+    private void navToPage(int position) {
         if (position < 0) {
             position = 0;
             Log.w(TAG, "the given position is former than the range start");
@@ -270,7 +287,7 @@ public class CalendarView extends ViewGroup {
             return;
         }
 
-        navToMonth(c);
+        navToPage(c);
         handleDayClick(mMonthPagerAdapter.getDayView(c));
     }
 
@@ -281,7 +298,7 @@ public class CalendarView extends ViewGroup {
      */
     public void selectDayAtInit(Calendar c) {
         mSelectedCalendar = c;
-        navToMonth(mMonthPagerAdapter.getPosition(c));
+        navToPage(mMonthPagerAdapter.getPosition(c));
     }
 
     /**
@@ -294,7 +311,7 @@ public class CalendarView extends ViewGroup {
 
     public void setRange(Calendar start, Calendar end) {
         mMonthPagerAdapter.setRange(start, end);
-        if (null != mCurrentMonthStart) navToMonth(mCurrentMonthStart);
+        if (null != mCurrentMonthStart) navToPage(mCurrentMonthStart);
     }
 
     public DayViewStyle getDayViewStyle() {
@@ -315,6 +332,15 @@ public class CalendarView extends ViewGroup {
         refreshUI();
     }
 
+    public MonthViewStyle getMonthViewStyle() {
+        return mMonthViewStyle;
+    }
+
+    // TODO: 2016/4/1 refresh ui
+    public void setmMonthViewStyle(MonthViewStyle mMonthViewStyle) {
+        this.mMonthViewStyle = mMonthViewStyle;
+    }
+
     public Calendar getSelectedCalendar() {
         return mSelectedCalendar;
     }
@@ -333,6 +359,13 @@ public class CalendarView extends ViewGroup {
 
     public MonthPagerAdapter getMonthPagerAdapter() {
         return mMonthPagerAdapter;
+    }
+
+    public void startCollapse() {
+        collapsing = true;
+        MyAnimation animation = new MyAnimation();
+        animation.setFillAfter(true);
+        startAnimation(animation);
     }
 
     /**
@@ -358,6 +391,7 @@ public class CalendarView extends ViewGroup {
         };
         WeekViewStyle weekViewStyle;
         DayViewStyle dayViewStyle;
+        MonthViewStyle monthViewStyle;
         int firstDayOfWeek;
         int currentPosition;
         Calendar rangeStart;
@@ -372,6 +406,7 @@ public class CalendarView extends ViewGroup {
             super(in);
             this.weekViewStyle = (WeekViewStyle) in.readSerializable();
             this.dayViewStyle = (DayViewStyle) in.readSerializable();
+            this.monthViewStyle = (MonthViewStyle) in.readSerializable();
             this.firstDayOfWeek = in.readInt();
             this.currentPosition = in.readInt();
             this.rangeStart = (Calendar) in.readSerializable();
@@ -388,6 +423,7 @@ public class CalendarView extends ViewGroup {
         public void writeToParcel(Parcel dest, int flags) {
             dest.writeSerializable(this.weekViewStyle);
             dest.writeSerializable(this.dayViewStyle);
+            dest.writeSerializable(this.monthViewStyle);
             dest.writeInt(this.firstDayOfWeek);
             dest.writeInt(this.currentPosition);
             dest.writeSerializable(this.rangeStart);
@@ -396,5 +432,25 @@ public class CalendarView extends ViewGroup {
         }
     }
 
+    class MyAnimation extends Animation {
+        int mCollapseHeight;
+        int mCalendarHeight;
+        ViewGroup.LayoutParams mLayoutParams;
 
+        public MyAnimation() {
+            setDuration(5000);
+
+            mCollapseHeight = mMonthViewPager.getMeasuredHeight() - mMonthViewPager.getMeasuredHeight() / 5;
+            mLayoutParams = getLayoutParams();
+            mCalendarHeight = getMeasuredHeight();
+        }
+
+        @Override
+        protected void applyTransformation(float interpolatedTime, Transformation t) {
+            super.applyTransformation(interpolatedTime, t);
+            mMonthViewPager.setPadding(getPaddingLeft(), (int) (getPaddingTop() - mCollapseHeight * interpolatedTime), getPaddingRight(), getPaddingBottom());
+            mLayoutParams.height = (int) (mCalendarHeight - mCollapseHeight * interpolatedTime);
+            requestLayout();
+        }
+    }
 }

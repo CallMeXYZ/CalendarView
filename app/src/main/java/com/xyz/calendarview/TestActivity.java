@@ -38,7 +38,6 @@ public class TestActivity extends Activity {
                 tv.setText(sdf.format(date));
             }
         });
-        calendarView.setFirstDayOfWeek(Calendar.SATURDAY);
         findViewById(R.id.latter).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
@@ -76,11 +75,26 @@ public class TestActivity extends Activity {
             }
         };
         t.start();*/
-        Calendar c = Calendar.getInstance();
-        c.add(Calendar.MONTH,1);
-        c.add(Calendar.DAY_OF_YEAR, -2);
-        calendarView.selectDayAtInit(c);
+
+     calendarView.setFirstDayOfWeek(Calendar.FRIDAY);
+        calendarView.selectDayAtInit(Calendar.getInstance());
+        // u may need to set the time title manually since initiating won't call onMonthSelected
+        Date date = new Date(System.currentTimeMillis());
+        SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+        tv.setText(sdf.format(date));
+
+
+       findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
+           @Override
+           public void onClick(View v) {
+               calendarView.startCollapse();
+           }
+       });
+
     }
+
+
+
 
     class MyDayClickListener extends CircleColor {
         public MyDayClickListener(@ColorInt int color) {

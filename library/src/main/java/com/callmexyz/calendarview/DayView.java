@@ -12,6 +12,7 @@ import android.widget.RelativeLayout;
 import android.widget.TextView;
 
 import com.callmexyz.calendarview.styles.DayViewStyle;
+import com.callmexyz.calendarview.styles.MonthViewStyle;
 
 import java.util.Calendar;
 
@@ -19,6 +20,7 @@ import java.util.Calendar;
  * Created by CallMeXYZ on 2016/3/22.
  */
 public class DayView extends RelativeLayout {
+    private MonthViewStyle mMonthViewStyle;
     public static final
     @IdRes
     int SELECT_VIEW_ID = 1;
@@ -45,18 +47,20 @@ public class DayView extends RelativeLayout {
      */
     private View mSelectView;
 
-    public DayView(Context context, Calendar mDate, Calendar mMonthStart, DayViewStyle dayViewStyle) {
+    public DayView(Context context, Calendar mDate, Calendar mMonthStart, DayViewStyle dayViewStyle,MonthViewStyle monthViewStyle) {
         super(context);
-        init(mDate, mMonthStart, dayViewStyle);
+        init(mDate, mMonthStart, dayViewStyle, monthViewStyle);
 
     }
 
-    private void init(Calendar mDate, Calendar mMonthStart, DayViewStyle dayViewStyle) {
+    private void init(Calendar mDate, Calendar mMonthStart, DayViewStyle dayViewStyle,MonthViewStyle monthViewStyle) {
         this.mDate = mDate;
         this.mMonthStart = mMonthStart;
         this.mDayViewStyle = dayViewStyle;
+        this.mMonthViewStyle = monthViewStyle;
         mTextSize = mDayViewStyle.getTextSize();
-        if (Utils.ifSameMonth(mDate, mMonthStart)) {
+
+        if (MonthViewStyle.MonthType.WEEK_VIEW==mMonthViewStyle.getMonthType()||Utils.ifSameMonth(mDate, mMonthStart)) {
             mTextColor = dayViewStyle.getTextColorInMonth();
             mBgColor = dayViewStyle.getBgColorInMonth();
         } else {
@@ -100,6 +104,10 @@ public class DayView extends RelativeLayout {
 
     public int getBgColor() {
         return mBgColor;
+    }
+
+    public MonthViewStyle getMonthViewStyle() {
+        return mMonthViewStyle;
     }
 
     public DayViewStyle getDayViewStyle() {

@@ -17,6 +17,10 @@
             <flag name="friday" value="6"/>
             <flag name="saturday" value="7"/>
         </attr>
+        <attr name="xyz_monthViewMode" format="integer">
+            <flag name="monthMode" value="1"/>
+            <flag name="weekMode" value="2"/>
+        </attr>
         <attr name="xyz_weekNames" format="reference"/>
         <attr name="xyz_weekNameHeight" format="dimension"/>
         <attr name="xyz_weekTextSize" format="dimension"/>
