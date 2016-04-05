@@ -9,6 +9,7 @@ import android.widget.TextView;
 import com.callmexyz.calendarview.CalendarView;
 import com.callmexyz.calendarview.DayView;
 import com.callmexyz.calendarview.dayclicklistener.CircleColor;
+import com.callmexyz.calendarview.styles.MonthViewStyle;
 
 import java.text.SimpleDateFormat;
 import java.util.Calendar;
@@ -25,6 +26,7 @@ public class TestActivity extends Activity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_test);
+
         calendarView = (CalendarView) findViewById(R.id.calendar_view);
         calendarView.setDayClickListener(new MyDayClickListener(getResources().getColor(android.R.color.holo_blue_light)));
 
@@ -50,11 +52,12 @@ public class TestActivity extends Activity {
                 calendarView.navToFormer();
             }
         });
+
+
     /*
        example for selectDay using selectDay(Calendar) when initiating
       or u can just call selectDayAtInit(Calendar);
-    */
-       /* Thread t = new Thread(){
+    *//* Thread t = new Thread(){
             @Override
             public void run() {
                 super.run();
@@ -76,25 +79,25 @@ public class TestActivity extends Activity {
         };
         t.start();*/
 
-     calendarView.setFirstDayOfWeek(Calendar.FRIDAY);
+        calendarView.setFirstDayOfWeek(Calendar.FRIDAY);
         calendarView.selectDayAtInit(Calendar.getInstance());
         // u may need to set the time title manually since initiating won't call onMonthSelected
         Date date = new Date(System.currentTimeMillis());
         SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
         tv.setText(sdf.format(date));
+        findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+//                calendarView.startCollapse();
+                MonthViewStyle w = calendarView.getMonthViewStyle();
+                if (w.getMonthType() == MonthViewStyle.MonthType.MONTH_VIEW)
+                    w.setMonthType(MonthViewStyle.MonthType.WEEK_VIEW);
+                else w.setMonthType(MonthViewStyle.MonthType.MONTH_VIEW);
+                calendarView.setMonthViewStyle(w);
+            }
 
-
-       findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
-           @Override
-           public void onClick(View v) {
-               calendarView.startCollapse();
-           }
-       });
-
+        });
     }
-
-
-
 
     class MyDayClickListener extends CircleColor {
         public MyDayClickListener(@ColorInt int color) {

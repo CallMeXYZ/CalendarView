@@ -15,6 +15,9 @@ As the CalendarView projects in GitHub seems to be not so much **customizable**,
 - both month mode or week mode are introduced 
 
 # logs 
+## 2015.4.5
+- fix Utils.getWeekDiff. Why Java Calendar seems so powerless when it comes to calculate difference!Maybe u can take a coffee time to look at [joda-time-android](https://github.com/dlew/joda-time-android) if u don't want to be f***ed up.LOl
+
 ## 2015.4.1
 - happy Fool's Day!Now the CalendarView can make u money per-millis! if u believe me...
 - out-of-month day click event
@@ -29,8 +32,11 @@ As the CalendarView projects in GitHub seems to be not so much **customizable**,
 - select day by code
 
 # Issues
+## 2016.4.5
+- switch to week mode,sometimes it cannot navigate to the selected Calendar and unclick seems to be blocked until slide out the 3 limit page of PagerAdapter;
+
 ## 2016.4.1
-- week mode crash?what f!
+- ~~week mode crash?what f!~~ *2016.4.5* deprecate Utils.ifSameWeek,return fake result in CalendarView. Calendar.setFirstDayOfWeek() seems weird
 
 ## 2016.3.31
 - ~~out-of-month day click event~~ *2016.4.1*

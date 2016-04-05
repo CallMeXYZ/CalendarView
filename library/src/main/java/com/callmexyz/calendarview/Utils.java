@@ -73,6 +73,20 @@ public class Utils {
 
     }
 
+    public static boolean ifSameWeekAsWeekStart(Calendar weekStart, Calendar cal) {
+        if (ifSameDay(weekStart, cal)) return true;
+        if (weekStart.after(cal)) return false;
+        return getDayDifference(weekStart, cal) < 7;
+    }
+    // TODO: 2016/4/5
+
+    /**
+     * @param cc1
+     * @param cc2
+     * @param firstDayOfWeek
+     * @return
+     * @deprecated function good when call in normal use ,but problematic when in {@link MonthPagerAdapter}.Why?
+     */
     public static boolean ifSameWeek(Calendar cc1, Calendar cc2, int firstDayOfWeek) {
         if (null == cc1 || null == cc2) return false;
         Calendar c1 = (Calendar) cc1.clone();
@@ -92,12 +106,11 @@ public class Utils {
         if (b.before(s)) return getWeekDiff(s, b, firstDayOfWeek);
         Calendar small = (Calendar) s.clone();
         Calendar big = (Calendar) b.clone();
-        s.setFirstDayOfWeek(firstDayOfWeek);
-        b.setFirstDayOfWeek(firstDayOfWeek);
-        int weekEnd = (s.get(Calendar.DAY_OF_WEEK)-1)%7;
-        if(0==weekEnd) weekEnd=Calendar.SATURDAY;
-        s.set(Calendar.DAY_OF_WEEK,weekEnd);
-        return (int) (getDayDifference(small, big) / 7)+1;
+        small.setFirstDayOfWeek(firstDayOfWeek);
+        int weekEnd = (firstDayOfWeek -1 ) % 7;
+        if (0 == weekEnd) weekEnd = Calendar.SATURDAY;
+        small.set(Calendar.DAY_OF_WEEK, weekEnd);
+        return (int) (getDayDifference(small, big) / 7) + 1;
     }
 
     public static long getDayDifference(Calendar small, Calendar big) {

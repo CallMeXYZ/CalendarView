@@ -33,6 +33,7 @@ public class CalendarView extends ViewGroup {
     private MonthSelectedListener mMonthSelectedListener;
     private DayClickListener mDayClickListener;
     // date for the current showing month's start
+    // TODO: 2016/4/5 should use week start when in week mode
     private Calendar mCurrentMonthStart;
     private int mCurrentPosition;
     //styles
@@ -111,11 +112,9 @@ public class CalendarView extends ViewGroup {
         mMonthViewPager = new MonthViewPager(getContext());
 
         mMonthPagerAdapter = new MonthPagerAdapter(this);
-
         mMonthViewPager.setAdapter(mMonthPagerAdapter);
         mCurrentPosition = mMonthPagerAdapter.getPosition(Calendar.getInstance());
         mMonthViewPager.setCurrentItem(mCurrentPosition);
-
         mMonthViewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
@@ -336,9 +335,15 @@ public class CalendarView extends ViewGroup {
         return mMonthViewStyle;
     }
 
-    // TODO: 2016/4/1 refresh ui
-    public void setmMonthViewStyle(MonthViewStyle mMonthViewStyle) {
+    // TODO: 2016/4/5 animation
+    public void setMonthViewStyle(MonthViewStyle mMonthViewStyle) {
         this.mMonthViewStyle = mMonthViewStyle;
+        refreshUI();
+        if (null != mSelectedCalendar) {
+            navToPage(mSelectedCalendar);
+            return;
+        }
+        if (null != mCurrentMonthStart) navToPage(mCurrentMonthStart);
     }
 
     public Calendar getSelectedCalendar() {
