@@ -78,7 +78,6 @@ public class Utils {
         if (weekStart.after(cal)) return false;
         return getDayDifference(weekStart, cal) < 7;
     }
-    // TODO: 2016/4/5
 
     /**
      * @param cc1

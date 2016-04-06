@@ -46,7 +46,7 @@ public class MonthPagerAdapter extends PagerAdapter {
 
     public void refreshUI() {
         mViewList.clear();
-       notifyDataSetChanged();
+        notifyDataSetChanged();
     }
 
     public boolean checkCalendar(Calendar c) {
@@ -67,7 +67,7 @@ public class MonthPagerAdapter extends PagerAdapter {
         }
         if (MonthViewStyle.MonthType.MONTH_VIEW == mCalendarView.getMonthViewStyle().getMonthType())
             return Utils.getMonthDiff(start, end) + 1;
-        return Utils.getWeekDiff(start, end,mCalendarView.getFirstDayOfWeek()) + 1;
+        return Utils.getWeekDiff(start, end, mCalendarView.getFirstDayOfWeek()) + 1;
     }
 
     @Override
@@ -91,6 +91,11 @@ public class MonthPagerAdapter extends PagerAdapter {
 
     }
 
+ /*   @Override
+    public int getItemPosition(Object object) {
+        return POSITION_NONE;
+    }*/
+
     public Calendar getItemCalendar(int position) {
         Calendar c = (Calendar) mRangeStart.clone();
         if (MonthViewStyle.MonthType.MONTH_VIEW == mCalendarView.getMonthViewStyle().getMonthType())
@@ -103,11 +108,11 @@ public class MonthPagerAdapter extends PagerAdapter {
         int i = 0;
         if (MonthViewStyle.MonthType.MONTH_VIEW == mCalendarView.getMonthViewStyle().getMonthType())
             i = Utils.getMonthDiff(mRangeStart, c);
-        else i = Utils.getWeekDiff(mRangeStart, c,mCalendarView.getFirstDayOfWeek());
+        else i = Utils.getWeekDiff(mRangeStart, c, mCalendarView.getFirstDayOfWeek());
         if (i < 0 || i > getCount() - 1) {
             Log.w(TAG, "the given calendar is out of valid range");
         }
-        return i < 0 ? 0 : (i > getCount()-1 ? getCount()-1 : i);
+        return i < 0 ? 0 : (i > getCount() - 1 ? getCount() - 1 : i);
     }
 
     /**
@@ -116,7 +121,7 @@ public class MonthPagerAdapter extends PagerAdapter {
      */
     public DayView getDayView(Calendar c) {
         for (int i = 0; i < mViewList.size(); i++) {
-           if ((MonthViewStyle.MonthType.MONTH_VIEW == mCalendarView.getMonthViewStyle().getMonthType()
+            if ((MonthViewStyle.MonthType.MONTH_VIEW == mCalendarView.getMonthViewStyle().getMonthType()
                     && Utils.ifSameMonth(mViewList.get(i).getFirstDay(), c))
                     || (MonthViewStyle.MonthType.WEEK_VIEW == mCalendarView.getMonthViewStyle().getMonthType()
                     && Utils.ifSameWeekAsWeekStart(mViewList.get(i).getMonthStartDay(), c))) {

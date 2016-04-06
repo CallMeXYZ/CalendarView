@@ -65,7 +65,6 @@ public class CalendarView extends ViewGroup {
         initViews();
     }
 
-    // TODO: 2016/3/24
     private void initStyles(Context context, AttributeSet attr) {
         mDayViewStyle = new DayViewStyle();
         TypedArray ta = getContext().obtainStyledAttributes(attr, R.styleable.xyz_calendarview, 0, 0);
@@ -338,12 +337,18 @@ public class CalendarView extends ViewGroup {
     // TODO: 2016/4/5 animation
     public void setMonthViewStyle(MonthViewStyle mMonthViewStyle) {
         this.mMonthViewStyle = mMonthViewStyle;
-        refreshUI();
-        if (null != mSelectedCalendar) {
-            navToPage(mSelectedCalendar);
-            return;
-        }
-        if (null != mCurrentMonthStart) navToPage(mCurrentMonthStart);
+        mMonthPagerAdapter = new MonthPagerAdapter(this);
+        mMonthViewPager.setAdapter(mMonthPagerAdapter);
+        if (null == mSelectedCalendar)
+            mCurrentPosition = mMonthPagerAdapter.getPosition(Calendar.getInstance());
+        else mCurrentPosition = mMonthPagerAdapter.getPosition(mSelectedCalendar);
+        mMonthViewPager.setCurrentItem(mCurrentPosition);
+//        if (null != mSelectedCalendar) {
+//            mMonthViewPager.setCurrentItem(mMonthPagerAdapter.getPosition(mSelectedCalendar));
+//            return;
+//        }
+//        if (null != mCurrentMonthStart) mMonthViewPager.setCurrentItem(mMonthPagerAdapter.getPosition(mCurrentMonthStart));
+//
     }
 
     public Calendar getSelectedCalendar() {
@@ -366,11 +371,13 @@ public class CalendarView extends ViewGroup {
         return mMonthPagerAdapter;
     }
 
+    // TODO: 2016/4/6
     public void startCollapse() {
         collapsing = true;
         MyAnimation animation = new MyAnimation();
         animation.setFillAfter(true);
         startAnimation(animation);
+
     }
 
     /**
@@ -458,4 +465,6 @@ public class CalendarView extends ViewGroup {
             requestLayout();
         }
     }
+
+
 }

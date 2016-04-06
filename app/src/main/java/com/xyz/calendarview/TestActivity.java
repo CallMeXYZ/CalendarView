@@ -5,6 +5,7 @@ import android.os.Bundle;
 import android.support.annotation.ColorInt;
 import android.view.View;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.callmexyz.calendarview.CalendarView;
 import com.callmexyz.calendarview.DayView;
@@ -54,10 +55,9 @@ public class TestActivity extends Activity {
         });
 
 
-    /*
-       example for selectDay using selectDay(Calendar) when initiating
-      or u can just call selectDayAtInit(Calendar);
-    *//* Thread t = new Thread(){
+        //  example for selectDay using selectDay(Calendar) when initiating
+        // or u can just call selectDayAtInit(Calendar);
+   /* Thread t = new Thread(){
             @Override
             public void run() {
                 super.run();
@@ -88,15 +88,14 @@ public class TestActivity extends Activity {
         findViewById(R.id.test).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-//                calendarView.startCollapse();
                 MonthViewStyle w = calendarView.getMonthViewStyle();
                 if (w.getMonthType() == MonthViewStyle.MonthType.MONTH_VIEW)
                     w.setMonthType(MonthViewStyle.MonthType.WEEK_VIEW);
                 else w.setMonthType(MonthViewStyle.MonthType.MONTH_VIEW);
                 calendarView.setMonthViewStyle(w);
             }
-
         });
+
     }
 
     class MyDayClickListener extends CircleColor {
@@ -108,9 +107,9 @@ public class TestActivity extends Activity {
         public void onDayClick(DayView view, Calendar c, boolean ifRestoring) {
             super.onDayClick(view, c, ifRestoring);
             SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
-            if (!ifRestoring) {
-                tv.setText(sdf.format(new Date(calendarView.getSelectedCalendar().getTimeInMillis())));
-            }
+            String s = sdf.format(new Date(calendarView.getSelectedCalendar().getTimeInMillis()));
+            tv.setText(s);
+            if (!ifRestoring) Toast.makeText(getApplicationContext(), s, Toast.LENGTH_SHORT).show();
         }
 
         @Override
@@ -118,4 +117,5 @@ public class TestActivity extends Activity {
             super.onDayUnClick(view, c);
         }
     }
+
 }
