@@ -15,7 +15,7 @@ import java.util.Calendar;
  */
 public class MonthPagerAdapter extends PagerAdapter {
     private final String TAG = MonthPagerAdapter.class.getSimpleName();
-    private ArrayList<MonthItem> mViewList;
+    private ArrayList<PageItem> mViewList;
     private Calendar mRangeStart;
     private Calendar mRangeEnd;
     private CalendarView mCalendarView;
@@ -77,17 +77,17 @@ public class MonthPagerAdapter extends PagerAdapter {
 
     @Override
     public Object instantiateItem(ViewGroup container, int position) {
-        MonthItem monthItem = new MonthItem(container.getContext(), getItemCalendar(position), mCalendarView);
-        container.addView(monthItem);
-        mViewList.add(monthItem);
-        return monthItem;
+        PageItem pageItem = new PageItem(container.getContext(), getItemCalendar(position), mCalendarView);
+        container.addView(pageItem);
+        mViewList.add(pageItem);
+        return pageItem;
     }
 
     @Override
     public void destroyItem(ViewGroup container, int position, Object object) {
-        MonthItem monthItem = ((MonthItem) object);
-        container.removeView(monthItem);
-        mViewList.remove(monthItem);
+        PageItem pageItem = ((PageItem) object);
+        container.removeView(pageItem);
+        mViewList.remove(pageItem);
 
     }
 
@@ -142,7 +142,7 @@ public class MonthPagerAdapter extends PagerAdapter {
     /**
      * @return cached MonthItems
      */
-    public ArrayList<MonthItem> getViewList() {
+    public ArrayList<PageItem> getViewList() {
         return mViewList;
     }
 }

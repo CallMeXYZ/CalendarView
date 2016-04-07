@@ -14,6 +14,9 @@ import android.view.animation.Animation;
 import android.view.animation.Transformation;
 
 import com.callmexyz.calendarview.dayclicklistener.DayClickListener;
+import com.callmexyz.calendarview.interfaces.DayEventHandler;
+import com.callmexyz.calendarview.interfaces.EventProvider;
+import com.callmexyz.calendarview.interfaces.PageSelectedListener;
 import com.callmexyz.calendarview.styles.DayViewStyle;
 import com.callmexyz.calendarview.styles.MonthViewStyle;
 import com.callmexyz.calendarview.styles.WeekViewStyle;
@@ -30,8 +33,11 @@ public class CalendarView extends ViewGroup {
     private final int default_week_text_size = 16;
     private final int default_day_text_size = 16;
     boolean collapsing = false;
-    private MonthSelectedListener mMonthSelectedListener;
+    //interfaces
+    private PageSelectedListener mPageSelectedListener;
     private DayClickListener mDayClickListener;
+    private EventProvider mEventProvider;
+    private DayEventHandler mDayEventHandler;
     // date for the current showing month's start
     // TODO: 2016/4/5 should use week start when in week mode
     private Calendar mCurrentMonthStart;
@@ -124,8 +130,8 @@ public class CalendarView extends ViewGroup {
             public void onPageSelected(int position) {
                 mCurrentMonthStart = mMonthPagerAdapter.getItemCalendar(position);
                 mCurrentPosition = position;
-                if (null != mMonthSelectedListener)
-                    mMonthSelectedListener.onMonthSelected((Calendar) mCurrentMonthStart.clone());
+                if (null != mPageSelectedListener)
+                    mPageSelectedListener.onPageSelected((Calendar) mCurrentMonthStart.clone());
             }
 
             @Override
@@ -235,8 +241,8 @@ public class CalendarView extends ViewGroup {
             mDayClickListener.onDayClick(view, (Calendar) view.getDate().clone(), false);
     }
 
-    public void setMonthSelectedListener(MonthSelectedListener listener) {
-        mMonthSelectedListener = listener;
+    public void setMonthSelectedListener(PageSelectedListener listener) {
+        mPageSelectedListener = listener;
     }
 
     public DayClickListener getDayClickListener() {
@@ -312,6 +318,7 @@ public class CalendarView extends ViewGroup {
         if (null != mCurrentMonthStart) navToPage(mCurrentMonthStart);
     }
 
+
     public DayViewStyle getDayViewStyle() {
         return mDayViewStyle;
     }
@@ -380,12 +387,22 @@ public class CalendarView extends ViewGroup {
 
     }
 
-    /**
-     * interface for month showing on the screen,return the calendar of month start
-     */
-    public interface MonthSelectedListener {
-        void onMonthSelected(Calendar c);
+    public EventProvider getMonthEventProvider() {
+        return mEventProvider;
     }
+
+    public void setMonthEventProvider(EventProvider mEventProvider) {
+        this.mEventProvider = mEventProvider;
+    }
+
+    public DayEventHandler getDayEventProvider() {
+        return mDayEventHandler;
+    }
+
+    public void setDayEventProvider(DayEventHandler mDayEventHandler) {
+        this.mDayEventHandler = mDayEventHandler;
+    }
+
 
     public static class SavedState extends BaseSavedState {
 

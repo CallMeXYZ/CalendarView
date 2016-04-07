@@ -11,7 +11,7 @@ import java.util.Calendar;
 /**
  * Created by CallMeXYZ on 2016/3/22.
  */
-public class MonthItem extends ViewGroup {
+public class PageItem extends ViewGroup {
 
 // TODO: 2016/4/1  reset first day mechanism
     /**
@@ -21,8 +21,9 @@ public class MonthItem extends ViewGroup {
     // the first day of MontItem
     private Calendar mMonthStartDay;
     private CalendarView mCalendarView;
+    private MapDayEvent mMonthDayEvents = new MapDayEvent();
 
-    public MonthItem(Context context, Calendar monthFirstDay, CalendarView calendarView) {
+    public PageItem(Context context, Calendar monthFirstDay, CalendarView calendarView) {
         super(context);
         mCalendarView = calendarView;
         mFirstDay = monthFirstDay;
@@ -31,6 +32,13 @@ public class MonthItem extends ViewGroup {
 
     private void initViews() {
         mMonthStartDay = Utils.getMonthViewStart(mFirstDay, mCalendarView.getFirstDayOfWeek());
+
+        Calendar end = (Calendar) mMonthStartDay.clone();
+        if (MonthViewStyle.MonthType.MONTH_VIEW == mCalendarView.getMonthViewStyle().getMonthType())
+            end.add(Calendar.DAY_OF_YEAR, Utils.MONTH_VIEW_DAY_SIZE);
+        else end.add(Calendar.DAY_OF_YEAR, Utils.WEEK_SIZE);
+        if (null != mCalendarView.getMonthEventProvider())
+            mMonthDayEvents = mCalendarView.getMonthEventProvider().getMonthDayEvents((Calendar) mMonthStartDay.clone(), end);
         final Calendar viewStart = (Calendar) mMonthStartDay.clone();
         int size = 0;
         switch (mCalendarView.getMonthViewStyle().getMonthType()) {
@@ -42,13 +50,14 @@ public class MonthItem extends ViewGroup {
                 break;
         }
         for (int i = 0; i < size; i++) {
-            final DayView dayView = new DayView(getContext(), (Calendar) viewStart.clone(), mFirstDay, mCalendarView.getDayViewStyle(), mCalendarView.getMonthViewStyle());
-
+            Integer eventNum = mMonthDayEvents.getEventNum(viewStart);
+            final boolean ifSameMonth = Utils.ifSameMonth(viewStart, mFirstDay);
+            final DayView dayView = new DayView(getContext(), (Calendar) viewStart.clone(), mFirstDay, mCalendarView.getDayViewStyle(), mCalendarView.getMonthViewStyle(), ifSameMonth, null!=eventNum?eventNum:0, mCalendarView.getDayEventProvider());
             dayView.setOnClickListener(new OnClickListener() {
                 @Override
                 public void onClick(View v) {
                     //when in week view mode, there is no so called in month or out month
-                    if (MonthViewStyle.MonthType.WEEK_VIEW == mCalendarView.getMonthViewStyle().getMonthType() || Utils.ifSameMonth(viewStart, mFirstDay))
+                    if (MonthViewStyle.MonthType.WEEK_VIEW == mCalendarView.getMonthViewStyle().getMonthType() || ifSameMonth)
                         mCalendarView.handleDayClick((DayView) v);
                     else if ((mCalendarView.getDayViewStyle().isOutMonthVisible() && mCalendarView.getDayViewStyle().isOutMonthClickable())) {
                         mCalendarView.selectDay(dayView.getDate());
@@ -59,7 +68,7 @@ public class MonthItem extends ViewGroup {
             });
             //here restore day click state
             // TODO: 2016/3/24 in the future, dayview tag will be introduced. be careful of the tag state when restoring
-            if (null != mCalendarView.getSelectedCalendar() && Utils.ifSameDay(viewStart, mCalendarView.getSelectedCalendar()) && (MonthViewStyle.MonthType.WEEK_VIEW == mCalendarView.getMonthViewStyle().getMonthType() || Utils.ifSameMonth(viewStart, mFirstDay)) && null != mCalendarView.getDayClickListener())
+            if (null != mCalendarView.getSelectedCalendar() && Utils.ifSameDay(viewStart, mCalendarView.getSelectedCalendar()) && (MonthViewStyle.MonthType.WEEK_VIEW == mCalendarView.getMonthViewStyle().getMonthType() || ifSameMonth) && null != mCalendarView.getDayClickListener())
                 mCalendarView.getDayClickListener().onDayClick(dayView, (Calendar) dayView.getDate().clone(), true);
             addView(dayView);
             viewStart.add(Calendar.DAY_OF_YEAR, 1);

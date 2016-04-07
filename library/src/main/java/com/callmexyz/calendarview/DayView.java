@@ -11,6 +11,7 @@ import android.view.WindowManager;
 import android.widget.RelativeLayout;
 import android.widget.TextView;
 
+import com.callmexyz.calendarview.interfaces.DayEventHandler;
 import com.callmexyz.calendarview.styles.DayViewStyle;
 import com.callmexyz.calendarview.styles.MonthViewStyle;
 
@@ -20,13 +21,13 @@ import java.util.Calendar;
  * Created by CallMeXYZ on 2016/3/22.
  */
 public class DayView extends RelativeLayout {
-    private MonthViewStyle mMonthViewStyle;
     public static final
     @IdRes
     int SELECT_VIEW_ID = 1;
     public static final
     @IdRes
     int TEXT_VIEW_ID = 2;
+    private MonthViewStyle mMonthViewStyle;
     private Calendar mDate;
     private Calendar mMonthStart;
     private DayViewStyle mDayViewStyle;
@@ -40,6 +41,8 @@ public class DayView extends RelativeLayout {
     private
     @ColorInt
     int mBgColor;
+    private int mEventNum;
+    private boolean mIfSameMonth;
     private TextView mText;
     /**
      * view to add when DayView is Clicked,have to add this before {@link DayView#mText}.
@@ -47,26 +50,29 @@ public class DayView extends RelativeLayout {
      */
     private View mSelectView;
 
-    public DayView(Context context, Calendar mDate, Calendar mMonthStart, DayViewStyle dayViewStyle,MonthViewStyle monthViewStyle) {
+    public DayView(Context context, Calendar mDate, Calendar mMonthStart, DayViewStyle dayViewStyle, MonthViewStyle monthViewStyle,boolean ifSameMonth, Integer eventNum, DayEventHandler dayEventHandler) {
         super(context);
-        init(mDate, mMonthStart, dayViewStyle, monthViewStyle);
+        init(mDate, mMonthStart, dayViewStyle, monthViewStyle,ifSameMonth,eventNum, dayEventHandler);
 
     }
 
-    private void init(Calendar mDate, Calendar mMonthStart, DayViewStyle dayViewStyle,MonthViewStyle monthViewStyle) {
+    private void init(Calendar mDate, Calendar mMonthStart, DayViewStyle dayViewStyle, MonthViewStyle monthViewStyle, boolean ifSameMonth,Integer eventNum, DayEventHandler dayEventHandler) {
         this.mDate = mDate;
         this.mMonthStart = mMonthStart;
         this.mDayViewStyle = dayViewStyle;
         this.mMonthViewStyle = monthViewStyle;
+        this.mEventNum =eventNum;
+        this.mIfSameMonth = ifSameMonth;
         mTextSize = mDayViewStyle.getTextSize();
 
-        if (MonthViewStyle.MonthType.WEEK_VIEW==mMonthViewStyle.getMonthType()||Utils.ifSameMonth(mDate, mMonthStart)) {
+        if (MonthViewStyle.MonthType.WEEK_VIEW == mMonthViewStyle.getMonthType() || Utils.ifSameMonth(mDate, mMonthStart)) {
             mTextColor = dayViewStyle.getTextColorInMonth();
             mBgColor = dayViewStyle.getBgColorInMonth();
         } else {
             mTextColor = dayViewStyle.getTextColorOutMonth();
             mBgColor = dayViewStyle.getBgColorOutMonth();
         }
+        if (null != dayEventHandler&&null!=eventNum) dayEventHandler.handleDayEvent(this, ifSameMonth, eventNum);
         setBackgroundColor(mBgColor);
         if (Utils.ifSameMonth(mDate, mMonthStart) || dayViewStyle.isOutMonthVisible()) {
             RelativeLayout.LayoutParams lp = new LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.MATCH_PARENT);

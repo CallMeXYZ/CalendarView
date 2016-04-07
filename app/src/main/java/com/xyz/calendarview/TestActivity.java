@@ -4,12 +4,17 @@ import android.app.Activity;
 import android.os.Bundle;
 import android.support.annotation.ColorInt;
 import android.view.View;
+import android.widget.RelativeLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.callmexyz.calendarview.CalendarView;
 import com.callmexyz.calendarview.DayView;
+import com.callmexyz.calendarview.MapDayEvent;
 import com.callmexyz.calendarview.dayclicklistener.CircleColor;
+import com.callmexyz.calendarview.interfaces.DayEventHandler;
+import com.callmexyz.calendarview.interfaces.EventProvider;
+import com.callmexyz.calendarview.interfaces.PageSelectedListener;
 import com.callmexyz.calendarview.styles.MonthViewStyle;
 
 import java.text.SimpleDateFormat;
@@ -33,9 +38,9 @@ public class TestActivity extends Activity {
 
         tv = (TextView) findViewById(R.id.time);
 
-        calendarView.setMonthSelectedListener(new CalendarView.MonthSelectedListener() {
+        calendarView.setMonthSelectedListener(new PageSelectedListener() {
             @Override
-            public void onMonthSelected(Calendar c) {
+            public void onPageSelected(Calendar c) {
                 Date date = new Date(c.getTimeInMillis());
                 SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
                 tv.setText(sdf.format(date));
@@ -78,8 +83,33 @@ public class TestActivity extends Activity {
             }
         };
         t.start();*/
-
-        calendarView.setFirstDayOfWeek(Calendar.FRIDAY);
+        calendarView.setMonthEventProvider(new EventProvider() {
+            @Override
+            public MapDayEvent getMonthDayEvents(Calendar start, Calendar end) {
+                MapDayEvent map = new MapDayEvent();
+                Calendar calendar = Calendar.getInstance();
+                calendar.add(Calendar.DAY_OF_YEAR, 10);
+                map.putEvent(calendar, 1);
+                calendar.add(Calendar.DAY_OF_YEAR, -17);
+                map.putEvent(calendar, 2);
+                return map;
+            }
+        });
+        calendarView.setDayEventProvider(new DayEventHandler() {
+            @Override
+            public void handleDayEvent(DayView dayView, boolean ifSameMonth, int eventNum) {
+                if (eventNum > 0) {
+                    TextView textView = new TextView(dayView.getContext());
+                    textView.setText(eventNum + "");
+                    RelativeLayout.LayoutParams layoutParams = new RelativeLayout.LayoutParams(RelativeLayout.LayoutParams.WRAP_CONTENT, RelativeLayout.LayoutParams.WRAP_CONTENT);
+                    layoutParams.addRule(RelativeLayout.ALIGN_PARENT_BOTTOM);
+                    layoutParams.addRule(RelativeLayout.CENTER_HORIZONTAL);
+                    if (ifSameMonth)
+                        textView.setTextColor(getResources().getColor(android.R.color.holo_blue_light));
+                    dayView.addView(textView, layoutParams);
+                }
+            }
+        });
         calendarView.selectDayAtInit(Calendar.getInstance());
         // u may need to set the time title manually since initiating won't call onMonthSelected
         Date date = new Date(System.currentTimeMillis());

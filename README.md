@@ -15,6 +15,8 @@ As the CalendarView projects in GitHub seem to be not so much **customizable**,t
 - both month mode or week mode are introduced 
 
 # logs 
+## 2015.4.7
+- function event tag added by the interface `MonthEventProvider` and `DayEventProvider`;
 ## 2015.4.5
 - fix Utils.getWeekDiff. Why Java Calendar seems so powerless when it comes to calculate difference!Maybe u can take a coffee time to look at [joda-time-android](https://github.com/dlew/joda-time-android) if u don't want to be f***ed up.Lol
 
@@ -32,6 +34,10 @@ As the CalendarView projects in GitHub seem to be not so much **customizable**,t
 - select day by code
 
 # Issues
+## 2016.4.8
+- unify `DayView` style 
+- add event num of specific day
+
 ## 2016.4.5
 - ~~switch to week mode,sometimes it cannot navigate to the selected Calendar and unclick seems to be blocked until slide out the 3 limit page of PagerAdapter;~~ *2016.4.6*
   ~~override the `getItemPosition` method and return `POSITION_NONE` to force refresh in `MonthPagerAdapter`~~
